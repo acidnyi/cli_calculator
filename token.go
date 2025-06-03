@@ -16,6 +16,8 @@ const (
   DIV
   LPAREN
   RPAREN
+  POW
+  IDENTIFIER
 )
 
 type Token struct {
@@ -48,6 +50,8 @@ func Tokenize(input string) ([]Token, error) {
       tokens = append(tokens, Token{Type: LPAREN, Value: "("})
     case ')':
       tokens = append(tokens, Token{Type: RPAREN, Value: ")"})
+    case '^':
+      tokens = append(tokens, Token{Type: POW, Value: "^"})
     default:
       if unicode.IsDigit(rune(ch)) || ch == '.' {
         start := i
@@ -58,9 +62,19 @@ func Tokenize(input string) ([]Token, error) {
 
         tokens = append(tokens, Token{Type: NUMBER, Value: input[start:i]})
         continue
+      } else if unicode.IsLetter(rune(ch)) {
+        
+        start := i
+        for i < len(input) && unicode.IsLetter(rune(input[i])){
+          i++
+        }
+        
+        tokens = append(tokens, Token{Type: IDENTIFIER, Value: input[start:i]})
+        continue
       } else{
         return nil, fmt.Errorf("Unexpected character: %c", ch)
       }
+
     }
 
     i++

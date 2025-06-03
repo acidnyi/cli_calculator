@@ -9,7 +9,7 @@ func main(){
   if len(os.Args) != 2 {
     fmt.Println("Usage: calc \"expresion\"")
     fmt.Println("Example of the expresion: 3 + 2 / 4 * (2 - 1)")
-    fmt.Println("Supported operations: \n1.+\n2.-\n3.*\n4./")
+    fmt.Println("Supported operations: \n1.+\n2.-\n3.*\n4./\n5.^")
     return
   }
   

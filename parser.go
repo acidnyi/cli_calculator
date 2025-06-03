@@ -3,7 +3,13 @@ package main
 import (
   "fmt"
   "strconv"
+  "math"
 )
+
+var constants = map[string]float64 {
+  "pi": 3.141592653589793,
+  "e": 2.718281828459045,
+}
 
 type Parser struct {
   tokens []Token
@@ -34,6 +40,18 @@ func (p *Parser) Parse() float64 {
   return p.parseExpr()
 }
 
+func (p *Parser) parsePower() float64 {
+  base := p.parseFactor()
+
+  for p.current().Type == POW {
+    p.eat(POW)
+    exponent := p.parseFactor()
+    base = math.Pow(base, exponent)
+  }
+  return base
+}
+
+
 func (p *Parser) parseExpr() float64 {
   result := p.parseTerm()
 
@@ -54,17 +72,17 @@ func (p *Parser) parseExpr() float64 {
 }
 
 func (p *Parser) parseTerm() float64 {
-  result := p.parseFactor()
+  result := p.parsePower()
 
   for {
     tok := p.current()
 
     if tok.Type == MUL {
       p.eat(MUL)
-      result *= p.parseFactor()
+      result *= p.parsePower()
     } else if tok.Type == DIV {
       p.eat(DIV)
-      denom := p.parseFactor()
+      denom := p.parsePower()
       if denom == 0 {
         panic("Division by zero.")
       }
@@ -77,19 +95,28 @@ func (p *Parser) parseTerm() float64 {
   return result
 }
 
+
 func (p *Parser) parseFactor() float64 {
   tok := p.current()
 
-  if tok.Type == NUMBER {
+  switch tok.Type {
+  case NUMBER:
     p.eat(NUMBER)
     num, _ := strconv.ParseFloat(tok.Value, 64)
     return num
-  } else if tok.Type == LPAREN {
+  case LPAREN:
     p.eat(LPAREN)
     result := p.parseExpr()
     p.eat(RPAREN)
     return result
+  case IDENTIFIER:
+    p.eat(IDENTIFIER)
+    if val, ok := constants[tok.Value]; ok {
+      return val
+    }
+    panic(fmt.Sprintf("Unknown identifier: %s", tok.Value))
   }
 
   panic(fmt.Sprintf("Unexpected token: %v", tok))
 }
+
